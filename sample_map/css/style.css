@@ -1,0 +1,109 @@
+@charset "utf-8";
+body{
+    width: 90%;
+    margin: auto;
+    background: #f9f2d8d6;
+    font-family:"ヒラギノ丸ゴ Pro W4","ヒラギノ丸ゴ Pro","Hiragino Maru Gothic Pro","ヒラギノ角ゴ Pro W3","Hiragino Kaku Gothic Pro","HG丸ｺﾞｼｯｸM-PRO","HGMaruGothicMPRO";
+}
+
+.orange{
+    color: rgb(255, 130, 14);
+    font-weight: bold;
+    font-size: 32px;
+}
+header {
+    background-color: white;
+    border-top: 1px solid #4d4d4d;
+    position: fixed;
+    bottom: 0;
+    padding: 12px;
+    width: 100%;
+}
+
+.block {
+    height: 200px;
+    background-color: #ddd;
+    margin: 12px;
+    text-align: center;
+    vertical-align: middle;
+    line-height: 200px;
+    font-size: 42px;
+}
+
+.searchbox{
+    width: 60%;
+}
+
+.flex{
+    display: flex;
+    flex-wrap: wrap;
+}
+.question{
+width: 30%;
+margin-left: 10px;
+
+}
+
+.questions{
+    width: 38%;
+margin-left: 10px;
+
+}
+
+.correct{
+    background: #41e546;
+}
+
+.wrong{
+    background: #ed5330;
+}
+
+#myMap{
+    margin-left: ;
+}
+
+#inputForm{
+    position:absolute;top:200px;left:250px;padding:10px;background-color:white;border:1px solid #000;border-radius:10px;
+}
+
+#answer{
+    width: 100%;
+}
+
+img{
+    width: 100px;
+    cursor: pointer;
+}
+img:hover{
+    transform: translate(0, -5px);
+
+}
+
+#correct_btn{
+    display: inline-block;
+    cursor: pointer;
+}
+
+#correct_btn.jump{
+    animation: 0.4s cubic-bezier(.2,1,.2,1) 0s 1 jump;
+}
+
+@keyframes jump
+{
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-40px); }
+}
+
+.congrats{
+    color: rgb(255, 130, 14);
+    font-size: 36px;
+    margin-top: 0;
+}
+
+.invisible{
+    display: none;
+}
+
+button{
+    background: rgb(255, 130, 14);
+}

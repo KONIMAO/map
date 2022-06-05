@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>宝探しマップ</title>
+<style>
+body {
+  margin: 0;
+  padding: 0;
+}
+</style>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<h2 class="orange">宝探し!</h2>
+<p>問題の駅の所在地(市)を調べて、キーワード(市のアルファベット頭文字)をゲットしよう！</p>
+
+<!-- MapArea -->
+
+<div id="view"></div>
+<div class="flex">
+<div id="searchBoxContainer" class="searchbox">検索
+    <input type="text" id="searchBox"><button id="clear">Clear</button>
+</div>
+<div class="question">問題</div><button id="answer_check">Check</button>
+    <div id="myMap" style="width:60%; height:450px;"></div>
+    <div class="questions">
+        <dl>
+            <dt>1.人気温泉地の駅で、JR東海道線の終着駅であり、伊東線の始発駅でもある。</dt>
+            <dd class="invisible">▶︎熱海駅</dd>
+            <dt>2.関東の駅100線に認定されている江ノ電の駅。近くの踏切は「スラムダンク」のエンディングで有名。</dt>
+            <dd class="invisible">▶︎鎌倉高校前駅</dd>
+            <dt>3.【町名】櫛田神社があり、鎌倉時代にせいびされた博多の町の中でも中心的な役割を果たした地域。</dt>
+            <dd class="invisible">▶︎冷泉町</dd>
+            <dt>4.四条畷の戦いの故地から命名された駅。JR学研都市線が走る。</dt>
+            <dd class="invisible">▶︎四条畷駅</dd>
+            <dt>5.宮崎県で初めてできた駅として知られているJR九州薩摩線の駅。駅舎は1911年開設のそのままの姿で残っている。</dt>
+            <dd class="invisible">▶︎真幸駅</dd>
+            <dt>6.新幹線の停車駅で、新幹線の改札内にはヤマハやスズキの展示品がある。</dt>
+            <dd class="invisible">▶︎浜松駅</dd>
+            <dt>7.高倉健主演映画「駅」の舞台になったところで、縁起の良い駅名で有名。</dt>
+            <dd class="invisible">▶︎銭函駅</dd>
+        </dl>
+    </div>
+</div>
+<div id="inputForm" style="display:none;">
+    <table>
+        <tr><td colspan="2"></td></tr>
+        <tr><td>メモ</td><td><input id="memo" type="text"></td></tr>
+        <tr><td colspan="2"><input type="button" value="Save" onclick="saveData()" style="float:right;"/></td></tr>
+    </table>
+</div>
+<p>各駅のキーワードを西から並べてみると。。。</p>
+    <div id="answer">入力欄：
+    <!-- input area -->
+    <input id="item0" class="input_item0" value="" required maxlength="1" style="width:30px; height: 30px;" oninput="value = value.toUpperCase();">
+    <input id="item1" class="input_item1" value="" required maxlength="1" style="width:30px; height: 30px;" oninput="value = value.toUpperCase();">
+    <input id="item2" class="input_item2" value="" required maxlength="1" style="width:30px; height: 30px;" oninput="value = value.toUpperCase();">
+    <input id="item3" class="input_item3" value="" required maxlength="1" style="width:30px; height: 30px;" oninput="value = value.toUpperCase();">
+    <input id="item4" class="input_item4" value="" required maxlength="1" style="width:30px; height: 30px;" oninput="value = value.toUpperCase();">
+    <input id="item5" class="input_item5" value="" required maxlength="1" style="width:30px; height: 30px;" oninput="value = value.toUpperCase();">
+    <input id="item6" class="input_item6" value="" required maxlength="1" style="width:30px; height: 30px;" oninput="value = value.toUpperCase();">    
+    </div>
+
+    <p>宝の入っている箱をクリックで開けてみよう！</p>
+    <div id="boxes">
+        <img src="./img/blue_box.png" alt="">
+        <img src="./img/green_lunch_box.png" alt="">
+        <img src="./img/red_milk.png" alt="">
+        <img src="./img/yellow_box.png" alt="">
+        <img src="./img/purple_lunch_box.png" alt="">
+        <img src="./img/blue_milk.png" alt="">
+        <img src="./img/orange_lunch_box.png" alt="">
+        <img src="./img/red_box.png" alt="" id="correct_btn">
+        <img src="./img/yellow_lunch_box.png" alt="">
+        <img src="./img/green_box.png" alt="">
+    </div>
+<div id="congrats"></div>
+<!-- <p id="msg"></p> -->
+
+
+
+<!-- jQuery&GoogleMapsAPI -->
+<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+<!-- /jQuery&GoogleMapsAPI -->
+<script src="https://www.bing.com/api/maps/mapcontrol?callback=GetMap&key=AnGRUt6H_KsRm3164lLtbojb7H2CKuzgTM91XtOZEZtVT-pxIXvjs-wTHv20kpBm" async defer></script>
+<script src="./js/BmapQuery.js"></script>
+<!-- javascript -->
+<script>
+
+let infobox,map,currentPushpin;
+
+function GetMap() {
+    map = new Microsoft.Maps.Map('#myMap', {});
+    //AutoSuggest
+    Microsoft.Maps.loadModule('Microsoft.Maps.AutoSuggest', function () {
+        var manager = new Microsoft.Maps.AutosuggestManager({ map: map });
+        manager.attachAutosuggest('#searchBox', '#searchBoxContainer', selectedSuggestion);
+    });
+        //Add a click event to the map.
+        Microsoft.Maps.Events.addHandler(map, 'click', mapClicked);
+        //Create an infobox, but hide it. We can reuse it for each pushpin.
+        infobox = new Microsoft.Maps.Infobox(map.getCenter(), { visible: false });
+        infobox.setMap(map);
+
+}
+
+//Select display
+function selectedSuggestion(result) {
+    //Remove previously selected suggestions from the map.
+    map.entities.clear();
+    //Show the suggestion as a pushpin and center map over it.
+    var pin = new Microsoft.Maps.Pushpin(result.location);
+    map.entities.push(pin);
+    map.setView({ bounds: result.bestView });
+    console.log(result.location);
+}
+function mapClicked(e) {
+        //Create a pushpin.
+        currentPushpin = new Microsoft.Maps.Pushpin(e.location);
+        //Add a click event to the pushpin.
+        Microsoft.Maps.Events.addHandler(currentPushpin, 'click', pushpinClicked);
+        //Add the pushpin to the map.
+        map.entities.push(currentPushpin);
+        //Open up an input form here the user can enter in details for pushpin.
+        document.getElementById('inputForm').style.display = '';
+    }
+
+function saveData() {
+    //Get the data from form and add it to the pushpin
+    currentPushpin.metadata = {
+        title: document.getElementById('memo').value,
+    };
+    
+    let current_memo = currentPushpin.metadata.title
+    let current_lat = currentPushpin.geometry.bounds[0]
+    let current_lon = currentPushpin.geometry.bounds[1]
+    
+    let array =[current_lat, current_lon]
+    // console.log(currentPushpin);
+    // console.log(current_memo);
+    // console.log(current_lat);
+    // console.log(current_lon);
+    console.log(array);
+
+    //Optionally save this data somewhere (like a database or local storage).
+    // =======FIREBASE====================================
+
+    localStorage.setItem(current_memo, array);
+
+
+
+    //Clear the fields in the form and then hide the form.
+    document.getElementById('memo').value = '';
+    document.getElementById('inputForm').style.display = 'none';
+}
+
+function pushpinClicked(e) {
+        if (e.target.metadata) {
+            infobox.setOptions({
+                location: e.target.getLocation(),
+                title: e.target.metadata.title,
+                visible: true
+            });
+        }
+    }
+
+//Delete string
+    document.getElementById("clear").onclick = function(){
+    document.getElementById("searchBox").value="";
+}
+
+// 問題の答えチェック
+$("#answer_check").on("click",function(){
+$('dd').removeClass('invisible');
+})
+
+
+// 入力判定
+let array= ['R','E','D','H','A','K','O'];
+for (let i = 0; i < array.length; i++) {
+    const element = array[i];
+    // console.log(element);
+
+    function inputChange(event){
+    word.classList.remove('wrong');
+    if (word.value==array[i]) {
+        word.classList.add('correct');
+    }
+    else{
+        word.classList.add('wrong');
+    }
+}
+let word = document.getElementById('item'+i);
+word.addEventListener('change', inputChange);
+let msg = document.getElementById('msg');
+};
+
+
+// 正解の箱選び
+const correct_btn = document.getElementById("correct_btn");
+correct_btn.addEventListener("mousedown", () => {correct_btn.classList.add("jump");});
+correct_btn.addEventListener("animationend", () => {correct_btn.classList.remove("jump");});
+correct_btn.addEventListener("animationcancel", () => {correct_btn.classList.remove("jump");});
+
+$('#correct_btn').on('click', function(){
+    const html=`<p class="congrats"> おめでとう！100万円をゲット！</p>`
+$("#congrats").append(html);
+})
+
+</script>
+
+</body>
+</html>
